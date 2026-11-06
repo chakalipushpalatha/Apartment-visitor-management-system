@@ -1,0 +1,15 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Delete Visit | GateNest</title><link rel="stylesheet" href="style.css"></head><body><div class="container">
+<header class="navbar"><a class="brand" href="index.html"><span class="logo">⌂</span><span>GateNest<small>APARTMENT VISITOR PORTAL</small></span></a><nav class="nav-links"><a href="index.html">Dashboard</a><a href="list.html">Visit Records</a><a href="residents.html">Residents</a><a href="listOne.html">Find Visit</a><a href="insert.html">Register Visitor</a><a href="update.html">Update Status</a><a class="active" href="delete.html">Delete Record</a></nav></header>
+<div class="page-head"><h1>Delete Visit Record</h1><p>Remove an incorrect or unwanted visit record from the database.</p></div>
+<section class="card" style="max-width:720px;margin:0 auto"><div style="padding:14px 16px;border-radius:12px;background:#fff0f3;color:#a42d49;font-size:13px;line-height:1.6;margin-bottom:20px">⚠️ <b>Please be careful.</b> Deleting a visit record cannot normally be undone. The resident and visitor master records will remain in the database.</div>
+<form id="deleteForm"><label for="visitSelect">Select visit record</label><select id="visitSelect" required><option value="">Loading visits...</option></select>
+<label for="visitor">Visitor</label><input id="visitor" readonly placeholder="Select a visit">
+<label for="flat">Resident / Flat</label><input id="flat" readonly placeholder="Resident and flat">
+<label for="purpose">Purpose</label><input id="purpose" readonly placeholder="Purpose of visit">
+<div class="actions"><button class="danger" type="submit" id="deleteBtn" disabled>Delete Selected Visit</button><a class="btn secondary" href="index.html">← Dashboard</a></div><div id="status" class="status"></div></form></section><footer>GateNest · Delete visit record</footer></div><script src="common.js"></script><script>
+let visits=[];
+async function loadVisits(){try{visits=await api('/api/visits');$('#visitSelect').innerHTML='<option value="">-- Select visit --</option>'+visits.map(v=>`<option value="${v.visit_id}">#${v.visit_id} — ${escapeHTML(v.visitor_name)} · ${escapeHTML(v.flat_no)}</option>`).join('');}catch(e){showStatus(e.message,'error');}}
+$('#visitSelect').addEventListener('change',()=>{const v=visits.find(x=>String(x.visit_id)===$('#visitSelect').value);$('#deleteBtn').disabled=!v;$('#visitor').value=v?v.visitor_name+' · '+v.visitor_phone:'';$('#flat').value=v?v.resident_name+' · '+v.flat_no:'';$('#purpose').value=v?v.purpose:'';});
+$('#deleteForm').addEventListener('submit',async e=>{e.preventDefault();const id=$('#visitSelect').value;if(!id)return; if(!confirm('Are you sure you want to delete this visit record?'))return;$('#deleteBtn').disabled=true;try{const result=await api('/api/visits/'+encodeURIComponent(id),{method:'DELETE'});showStatus(result.message);await loadVisits();e.target.reset();$('#visitor').value=$('#flat').value=$('#purpose').value='';}catch(err){showStatus(err.message,'error');$('#deleteBtn').disabled=false;}});
+loadVisits();
+</script></body></html>

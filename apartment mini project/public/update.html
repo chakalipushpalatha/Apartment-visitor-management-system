@@ -1,0 +1,15 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Update Visit | GateNest</title><link rel="stylesheet" href="style.css"></head><body><div class="container">
+<header class="navbar"><a class="brand" href="index.html"><span class="logo">⌂</span><span>GateNest<small>APARTMENT VISITOR PORTAL</small></span></a><nav class="nav-links"><a href="index.html">Dashboard</a><a href="list.html">Visit Records</a><a href="residents.html">Residents</a><a href="listOne.html">Find Visit</a><a href="insert.html">Register Visitor</a><a class="active" href="update.html">Update Status</a><a href="delete.html">Delete Record</a></nav></header>
+<div class="page-head"><h1>Update Visit Status ↗</h1><p>Record a visitor's exit time or correct the current visit status.</p></div>
+<section class="card" style="max-width:720px;margin:0 auto"><h2>Update visit record</h2><label for="visitSelect">Select visit</label><select id="visitSelect"><option value="">Loading visits...</option></select>
+<label for="visitor">Visitor</label><input id="visitor" readonly placeholder="Select a visit">
+<label for="flat">Resident / Flat</label><input id="flat" readonly placeholder="Resident and flat">
+<label for="entry">Entry time</label><input id="entry" readonly>
+<label for="statusSelect">Visit status</label><select id="statusSelect"><option value="Inside">Inside</option><option value="Exited">Exited</option></select>
+<p class="muted">When you select Exited and save, the system automatically records the current exit date and time.</p><div class="actions"><button id="saveBtn" disabled>Save Changes</button><a class="btn secondary" href="index.html">← Dashboard</a></div><div id="status" class="status"></div></section><footer>GateNest · Entry and exit tracking</footer></div><script src="common.js"></script><script>
+let visits=[];
+async function loadVisits(){try{visits=await api('/api/visits');$('#visitSelect').innerHTML='<option value="">-- Select visit --</option>'+visits.map(v=>`<option value="${v.visit_id}">#${v.visit_id} — ${escapeHTML(v.visitor_name)} · ${escapeHTML(v.flat_no)} · ${v.status}</option>`).join('');}catch(e){showStatus(e.message,'error');}}
+$('#visitSelect').addEventListener('change',()=>{const v=visits.find(x=>String(x.visit_id)===$('#visitSelect').value);$('#saveBtn').disabled=!v;if(!v){$('#visitor').value=$('#flat').value=$('#entry').value='';return;}$('#visitor').value=v.visitor_name+' · '+v.visitor_phone;$('#flat').value=v.resident_name+' · '+v.flat_no;$('#entry').value=dateTime(v.entry_time);$('#statusSelect').value=v.status;});
+$('#saveBtn').addEventListener('click',async()=>{try{const result=await api('/api/visits/'+encodeURIComponent($('#visitSelect').value),{method:'PUT',body:JSON.stringify({status:$('#statusSelect').value})});showStatus(result.message);await loadVisits();$('#visitSelect').dispatchEvent(new Event('change'));}catch(e){showStatus(e.message,'error');}});
+loadVisits();
+</script></body></html>
